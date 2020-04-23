@@ -257,3 +257,34 @@ fn retain() {
     assert_eq!(arena.len(), 1);
     assert!(!arena.contains(index));
 }
+
+#[test]
+fn foreach_index_mut() {
+    struct Thing {
+        a: usize,
+        f: bool
+    }
+
+    let mut arena = Arena::new();
+    let a = arena.insert(Thing{ a: 1, f: false});
+    let mut items = Vec::new();
+    for i in 1..10 {
+        items.push(arena.insert(Thing{ a: i * 2, f: false}));
+    }
+
+    arena.foreach_index_mut(items.iter(), &mut |thing| {
+        thing.a = 5;
+        thing.f = true;
+    });
+
+    let mut count = 0;
+    for (_, thing) in arena.iter() {
+        if thing.f {
+            assert_eq!(thing.a, 5);
+            count = count + 1;
+        }
+    }
+
+    assert_eq!(count, items.len());
+    assert_eq!(arena.get(a).unwrap().a, 1);
+}

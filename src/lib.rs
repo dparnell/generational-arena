@@ -780,6 +780,37 @@ impl<T> Arena<T> {
         }
     }
 
+
+    /// Given an iterator containing the `Index` for items in the arena, call the given callback with a mutable reference to the item
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use generational_arena::Arena;
+    ///
+    /// struct Thing {
+    ///   a: usize
+    /// }
+    ///
+    /// let mut arena = Arena::new();
+    ///
+    /// let v1 = arena.insert(Thing{ a: 1});
+    /// let v2 = arena.insert(Thing{ a: 2});
+    /// let mut items = Vec::new();
+    /// for i in 5..10 {
+    ///   items.push(arena.insert(Thing{ a: i}));
+    /// }
+    ///
+    /// arena.foreach_index_mut(items.iter(), &|thing| { thing.a = thing.a * 2 });
+    /// ```
+    pub fn foreach_index_mut<F>(&mut self, indices: std::slice::Iter<Index>, callback: &mut F) where F: FnMut(&mut T) {
+        for idx in indices {
+            if let Some(item) = self.get_mut(*idx) {
+                callback(item);
+            }
+        }
+    }
+
     /// Iterate over elements of the arena and remove them.
     ///
     /// Yields pairs of `(Index, T)` items.
